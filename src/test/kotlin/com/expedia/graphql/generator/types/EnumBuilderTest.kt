@@ -46,10 +46,7 @@ internal class EnumBuilderTest : TypeTestHelper() {
     fun enumType() {
         val actual = builder.enumType(MyTestEnum::class)
         assertEquals(expected = 3, actual = actual.values.size)
-        assertEquals(expected = "MyTestEnum", actual = actual.name)
-        assertEquals(expected = "ONE", actual = actual.values[0].value)
-        assertEquals(expected = "TWO", actual = actual.values[1].value)
-        assertEquals(expected = "THREE", actual = actual.values[2].value)
+        actual.values.map { it.value }.containsAll(listOf("ONE", "TWO", "THREE"))
     }
 
     @Test
@@ -95,8 +92,10 @@ internal class EnumBuilderTest : TypeTestHelper() {
     @Test
     fun `Enum values can have a single directive`() {
         val gqlEnum = assertNotNull(builder.enumType(MyTestEnum::class))
+        val enumTHREE = gqlEnum.values.find { it.value == "THREE" }
+        assertNotNull(enumTHREE)
 
-        val directives = gqlEnum.values.last().directives
+        val directives = enumTHREE.directives
         assertEquals(2, directives.size)
         assertEquals("simpleDirective", directives.first().name)
         assertEquals("customName", directives.last().name)
