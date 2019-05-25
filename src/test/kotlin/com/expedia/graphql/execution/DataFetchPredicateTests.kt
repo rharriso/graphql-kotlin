@@ -26,7 +26,7 @@ class DataFetchPredicateTests {
         val result = graphQL.execute("{ greaterThan2Times10(greaterThan2: 1) }")
         val graphQLError = result.errors[0]
 
-        assertEquals("DataFetchingException", graphQLError.errorType.name)
+        assertEquals("ExceptionWhileDataFetching", graphQLError.javaClass.simpleName)
         val exception = (graphQLError as? ExceptionWhileDataFetching)?.exception
         assertEquals("The datafetcher cannot be executed due to: [Error(message=greaterThan2 is actually 1)]", exception?.message)
         assertTrue(exception is GraphQLKotlinException)
@@ -43,7 +43,7 @@ class DataFetchPredicateTests {
         val result = graphQL.execute("{ complexPredicate(person: { age: 33, name: \"Alice\"}) }")
         val graphQLError = result.errors[0]
 
-        assertEquals("DataFetchingException", graphQLError.errorType.name)
+        assertEquals("ExceptionWhileDataFetching", graphQLError.javaClass.simpleName)
         val exception = (graphQLError as? ExceptionWhileDataFetching)?.exception
         assertEquals("The datafetcher cannot be executed due to: [Error(message=Not the right age), Error(message=Not the right name)]", exception?.message)
         assertTrue(exception is GraphQLKotlinException)
