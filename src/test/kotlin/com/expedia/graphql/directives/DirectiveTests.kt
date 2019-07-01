@@ -36,6 +36,7 @@ class DirectiveTests {
 
         assertTrue(query.isDeprecated)
         assertEquals("this query is also deprecated, replace with shinyNewQuery", query.deprecationReason)
+        assertTrue(query.directives.stream().anyMatch { it.name == "deprecated" })
     }
 
     @Test
@@ -45,6 +46,7 @@ class DirectiveTests {
         val query = topLevelQuery.getFieldDefinition("deprecatedQuery")
         assertTrue(query.isDeprecated)
         assertEquals("this query is deprecated", query.deprecationReason)
+        assertTrue(query.directives.stream().anyMatch { it.name == "deprecated" })
     }
 
     @Test
