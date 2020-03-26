@@ -23,6 +23,8 @@ import graphql.schema.DataFetchingEnvironment
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
 import kotlin.test.assertEquals
@@ -58,6 +60,14 @@ internal class FunctionDataFetcherTest {
 
         @GraphQLName("myCustomField")
         fun renamedFields(@GraphQLName("myCustomArgument") arg: MyInputClass) = "You sent ${arg.field1}"
+
+        fun resultList(items: List<String>) = Result.success(items.joinToString(separator = ":"))
+
+        suspend fun suspendResultList(items: List<String>) = Result.success(items.joinToString(separator = ":"))
+
+        fun resultFailure() = Result.failure<String>(GraphQLException("Failed to produce result"))
+
+        suspend fun suspendResultFailure() = Result.failure<String>(GraphQLException("Failed to produce result"))
     }
 
     @GraphQLName("MyInputClassRenamed")
@@ -176,5 +186,45 @@ internal class FunctionDataFetcherTest {
         val arguments = mapOf("myCustomArgument" to mapOf("jacksonField" to "foo"))
         every { mockEnvironmet.arguments } returns arguments
         assertEquals(expected = "You sent foo", actual = dataFetcher.get(mockEnvironmet))
+
+    @Test
+    fun `resultList returns a successful result when resolved`() {
+        val dataFetcher = FunctionDataFetcher(target = MyClass(), fn = MyClass::resultList)
+        val mockEnvironmet: DataFetchingEnvironment = mockk()
+        every { mockEnvironmet.arguments } returns mapOf("items" to listOf("foo", "bar"))
+        val result = dataFetcher.get(mockEnvironmet)
+        assertTrue(result is Result<*>)
+        assertEquals(result.getOrNull(), "foo:bar")
+    }
+
+    @Test
+    fun `resultFailure returns a failing result when resolved`() {
+        val dataFetcher = FunctionDataFetcher(target = MyClass(), fn = MyClass::resultFailure)
+        val mockEnvironmet: DataFetchingEnvironment = mockk()
+        every { mockEnvironmet.arguments } returns mapOf("items" to listOf("foo", "bar"))
+        val result = dataFetcher.get(mockEnvironmet)
+        assertTrue(result is Result<*>)
+        assertEquals(result.exceptionOrNull()?.message, "Some Error")
+    }
+
+    @Test
+    fun `suspendResultList returns a successful result when resolved`() {
+        val dataFetcher = FunctionDataFetcher(target = MyClass(), fn = MyClass::suspendResultList)
+        val mockEnvironmet: DataFetchingEnvironment = mockk()
+        every { mockEnvironmet.arguments } returns mapOf("items" to listOf("foo", "bar"))
+
+        val result = runBlocking { dataFetcher.get(mockEnvironmet) }
+        assertTrue(result is Result<*>)
+        assertEquals(result.getOrNull(), "foo:bar")
+    }
+
+    @Test
+    fun `suspendResultFailure returns a failing result when resolved`() {
+        val dataFetcher = FunctionDataFetcher(target = MyClass(), fn = MyClass::suspendResultFailure)
+        val mockEnvironmet: DataFetchingEnvironment = mockk()
+        every { mockEnvironmet.arguments } returns mapOf("items" to listOf("foo", "bar"))
+        val result = runBlocking { dataFetcher.get(mockEnvironmet) }
+        assertTrue(result is Result<*>)
+        assertEquals(result.exceptionOrNull()?.message, "Some Error")
     }
 }
