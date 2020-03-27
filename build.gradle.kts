@@ -175,6 +175,7 @@ subprojects {
     dependencies {
         implementation(kotlin("stdlib", kotlinVersion))
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlinCoroutinesVersion")
+        implementation("com.michael-bull.kotlin-result:kotlin-result:$kotlinResultVersion")
         testImplementation(kotlin("test", kotlinVersion))
         testImplementation(kotlin("test-junit5", kotlinVersion))
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
