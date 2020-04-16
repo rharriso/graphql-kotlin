@@ -28,7 +28,7 @@ import com.expediagroup.graphql.examples.spark.schema.models.UNIVERSITY_LOADER_N
 import com.expediagroup.graphql.examples.spark.schema.models.User
 import com.expediagroup.graphql.examples.spark.schema.models.batchBookLoader
 import com.expediagroup.graphql.examples.spark.schema.models.batchCourseLoader
-import com.expediagroup.graphql.examples.spark.schema.models.batchUniversityLoader
+import com.expediagroup.graphql.examples.spark.schema.models.universityDataLoader
 import com.expediagroup.graphql.toSchema
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -65,7 +65,7 @@ class GraphQLHandler {
     private val dataLoaderRegistry = DataLoaderRegistry()
 
     init {
-        dataLoaderRegistry.register(UNIVERSITY_LOADER_NAME, batchUniversityLoader)
+        dataLoaderRegistry.register(UNIVERSITY_LOADER_NAME, universityDataLoader)
         dataLoaderRegistry.register(COURSE_LOADER_NAME, batchCourseLoader)
         dataLoaderRegistry.register(BATCH_BOOK_LOADER_NAME, batchBookLoader)
     }

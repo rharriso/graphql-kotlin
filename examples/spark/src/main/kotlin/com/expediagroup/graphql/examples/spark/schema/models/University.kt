@@ -16,28 +16,40 @@
 package com.expediagroup.graphql.examples.spark.schema.models
 
 import graphql.GraphQLException
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.future.future
+import org.dataloader.BatchLoader
 import org.dataloader.DataLoader
-import java.util.concurrent.CompletableFuture
+import org.dataloader.DataLoaderOptions
+import java.util.concurrent.CompletionStage
 
 const val UNIVERSITY_LOADER_NAME = "UNIVERSITY_LOADER"
 
-val batchUniversityLoader = DataLoader<Long, University?> { ids ->
-    CompletableFuture.supplyAsync {
-        runBlocking { University.search(ids).toMutableList() }
+private class BatchUniversityLoader : BatchLoader<Long, University?> {
+    override fun load(ids: MutableList<Long>?): CompletionStage<MutableList<University?>> {
+        return GlobalScope.future {
+            ids ?: return@future mutableListOf<University?>()
+            Thread.sleep(1000)
+            val universityIdMap = University.search(ids.toList()).toMutableList().associateBy { it.id }
+            ids.map { universityIdMap[it] }.toMutableList()
+        }
     }
 }
 
+val universityDataLoader: DataLoader<Long, University?> =
+    DataLoader.newDataLoader(BatchUniversityLoader(), DataLoaderOptions.newOptions().setCachingEnabled(false))
+
 class University(val id: Long, val name: String? = null) {
     companion object {
-        suspend fun search(ids: List<Long>): List<University> =
-            listOf(
+        fun search(ids: List<Long>): List<University> {
+            return listOf(
                 University(id = 1, name = "University of Nebraska-Lincoln"),
                 University(id = 2, name = "Kansas State University"),
                 University(id = 3, name = "Purdue University"),
                 University(id = 4, name = "Kennesaw State University"),
                 University(id = 5, name = "University of Georgia")
             ).filter { ids.contains(it.id) }
+        }
     }
 
     fun longThatNeverComes(): Long {

@@ -19,6 +19,8 @@ import graphql.schema.DataFetchingEnvironment
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.dataloader.DataLoader
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletableFuture.supplyAsync
 
 const val COURSE_LOADER_NAME = "COURSE_LOADER"
@@ -35,16 +37,19 @@ data class Course(
     val universityId: Long? = null,
     val bookIds: List<Long> = listOf()
 ) {
-    suspend fun university(dataFetchingEnvironment: DataFetchingEnvironment): University? {
-        return dataFetchingEnvironment.getDataLoader<Long, University>(UNIVERSITY_LOADER_NAME)
+    suspend fun university(dataFetchingEnvironment: DataFetchingEnvironment): University? =
+        dataFetchingEnvironment.getDataLoader<Long, University>(UNIVERSITY_LOADER_NAME)
             .load(universityId).await()
-    }
 
-    suspend fun books(dataFetchingEnvironment: DataFetchingEnvironment): List<Book>? {
-        val books = dataFetchingEnvironment.getDataLoader<List<Long>, List<Book>>(BATCH_BOOK_LOADER_NAME)
-            .load(bookIds).await()
-        return books
-    }
+    fun universityFuture(dataFetchingEnvironment: DataFetchingEnvironment): CompletableFuture<University?> =
+        dataFetchingEnvironment.getDataLoader<Long, University>(UNIVERSITY_LOADER_NAME)
+            .load(universityId)
+
+    suspend fun books(dataFetchingEnvironment: DataFetchingEnvironment) =
+        dataFetchingEnvironment
+            .getDataLoader<List<Long>, List<Book>>(BATCH_BOOK_LOADER_NAME)
+            .load(bookIds)
+            .await()
 
     companion object {
         suspend fun search(ids: List<Long>): List<Course> {

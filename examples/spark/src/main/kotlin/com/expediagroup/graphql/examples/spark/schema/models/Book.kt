@@ -42,7 +42,7 @@ data class Book(
 ) {
     @Suppress("unused")
     companion object {
-        fun search(ids: List<Long>): List<Book> {
+        suspend fun search(ids: List<Long>): List<Book> {
             return listOf(
                 Book(id = 1, title = "Campbell Biology"),
                 Book(id = 2, title = "The Cell"),
